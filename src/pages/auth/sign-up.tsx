@@ -1,9 +1,11 @@
+import { useMutation } from '@tanstack/react-query'
 import { Helmet } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
+import { registerRestaurant } from '@/api/register-restaurant'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,7 +13,7 @@ import { Label } from '@/components/ui/label'
 const signUpForm = z.object({
   restaurantName: z.string(),
   email: z.string().email(),
-  menagerName: z.string(),
+  managerName: z.string(),
   phone: z.string(),
 })
 
@@ -25,15 +27,23 @@ export function SignUp() {
     formState: { isSubmitting },
   } = useForm<signUpForm>()
 
+  const { mutateAsync: registerRestaurantFn } = useMutation({
+    mutationFn: registerRestaurant,
+  })
+
   async function handlesignUp(data: signUpForm) {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      console.log(data)
+      await registerRestaurantFn({
+        restaurantName: data.restaurantName,
+        managerName: data.managerName,
+        email: data.email,
+        phone: data.phone,
+      })
 
       toast.success('Restaurante cadastrado com sucesso!', {
         action: {
           label: 'Login',
-          onClick: () => navigate('/sign-in'),
+          onClick: () => navigate(`/sign-in?email=${data.email}`),
         },
       })
     } catch {
@@ -69,11 +79,11 @@ export function SignUp() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="menagerName">Seu Nome</Label>
+              <Label htmlFor="managerName">Seu Nome</Label>
               <Input
-                id="menagerName"
+                id="managerName"
                 type="text"
-                {...register('menagerName')}
+                {...register('managerName')}
               />
             </div>
 
